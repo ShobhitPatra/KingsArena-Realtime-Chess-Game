@@ -80,8 +80,6 @@ export class Game {
       );
     }
 
-    this.moveCount++;
-
     if (this.moveCount % 2 === 1) {
       this.player1.send(
         JSON.stringify({
@@ -90,5 +88,6 @@ export class Game {
         })
       );
     }
+    this.moveCount++;
   }
 }
