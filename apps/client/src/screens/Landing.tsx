@@ -6,7 +6,7 @@ const Landing = () => {
     <div className="h-screen bg-slate-950 flex justify-center items-center ">
       <div className="bg-slate-900 flex md:h-[34rem] md:w-[70rem] ">
         <div className=" w-1/2 flex">
-          <img src="ChessBoardImage.webp" className="w-full"></img>
+          <img src="chessboard.jpeg" className="w-full"></img>
         </div>
         <div className="flex flex-col w-1/2  ">
           <h2 className="flex justify-center items-center p-3 md:mb-10">

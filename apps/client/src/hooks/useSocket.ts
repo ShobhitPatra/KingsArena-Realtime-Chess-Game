@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-
 const WS_URL = "ws://localhost:8000";
-
 export const useSocket = () => {
   const [socket, setSocket] = useState<WebSocket | null>();
 
@@ -10,6 +8,7 @@ export const useSocket = () => {
       const ws = new WebSocket(WS_URL);
       ws.onopen = () => {
         setSocket(ws);
+        console.log(ws);
       };
       ws.onclose = () => {
         setSocket(null);
