@@ -8,7 +8,7 @@ wss.on("connection", function connection(ws) {
   gameManager.addNewUser(ws);
 
   // Handle connection close (disconnection)
-  ws.on("close", () => {
+  ws.on("disconnect", () => {
     gameManager.removeUser(ws);
   });
 });

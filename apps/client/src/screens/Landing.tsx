@@ -13,19 +13,15 @@ const Landing = () => {
             <span className="text-4xl font-bold">Chess Platform</span>
           </h2>
           <Button
-            buttonProps={{
-              buttonLabel: "Play Online",
-              onClickHandler: () => {
-                navigate("/game");
-              },
+            onClickHandler={() => {
+              navigate("/game");
             }}
+            buttonLabel="PLAY ONLINE"
           />
           <Button
-            buttonProps={{
-              buttonLabel: "Play as Guest",
-              onClickHandler: () => {
-                navigate("/game");
-              },
+            buttonLabel="PLAY ONLINE"
+            onClickHandler={() => {
+              console.log("sdflkhfh");
             }}
           />
         </div>

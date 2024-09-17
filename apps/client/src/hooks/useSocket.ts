@@ -8,14 +8,14 @@ export const useSocket = () => {
       const ws = new WebSocket(WS_URL);
       ws.onopen = () => {
         setSocket(ws);
-        console.log(ws);
+        // console.log(ws);
       };
       ws.onclose = () => {
         setSocket(null);
       };
 
       return () => {
-        setSocket(null);
+        ws.close();
       };
     } catch (error: any) {
       console.log(`error in useSocket hook :${error.message}`);

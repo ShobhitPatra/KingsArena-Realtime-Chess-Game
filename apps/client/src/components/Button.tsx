@@ -2,14 +2,22 @@ interface buttonPropsInteface {
   buttonLabel: string;
   onClickHandler: () => void;
 }
+interface ButtonWithChildrenProps extends buttonPropsInteface {
+  children: string;
+}
 
-const Button = ({ buttonProps }: { buttonProps: buttonPropsInteface }) => {
+const Button: React.FC<ButtonWithChildrenProps> = ({
+  children,
+  buttonLabel,
+  onClickHandler,
+}) => {
   return (
     <button
-      onClick={buttonProps.onClickHandler}
-      className="btn btn-success my-1 mx-4 text-white bg-green-800 text-xl "
+      onClick={onClickHandler}
+      className="btn btn-success my-1 mx-4 text-white bg-green-800 text-xl w-full"
     >
-      {buttonProps.buttonLabel}
+      {buttonLabel}
+      {children}
     </button>
   );
 };

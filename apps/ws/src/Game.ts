@@ -88,6 +88,15 @@ export class Game {
         })
       );
     }
+    // this.moveCount++;
+    // const moveMessage = JSON.stringify({
+    //   type: MOVE,
+    //   payload: move,
+    // });
+
+    // this.player1.send(moveMessage);
+    // this.player2.send(moveMessage);
+
     this.moveCount++;
   }
 }

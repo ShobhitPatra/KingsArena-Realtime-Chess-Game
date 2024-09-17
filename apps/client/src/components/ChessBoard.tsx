@@ -1,14 +1,14 @@
 import { Chess, Color, PieceSymbol, Square } from "chess.js";
-import { MOVE } from "../screens/Game";
 import { useState } from "react";
+import { MOVE } from "../screens/Game";
 
-interface chessBoardPropsInterface {
+export const ChessBoard = ({
+  chess,
+  board,
+  socket,
+  setBoard,
+}: {
   chess: Chess;
-  board: ({
-    square: Square;
-    type: PieceSymbol;
-    color: Color;
-  } | null)[][];
   setBoard: React.Dispatch<
     React.SetStateAction<
       ({
@@ -18,20 +18,20 @@ interface chessBoardPropsInterface {
       } | null)[][]
     >
   >;
-  socket: WebSocket | null | undefined;
-}
-
-const ChessBoard = ({
-  chessBoardProps,
-}: {
-  chessBoardProps: chessBoardPropsInterface;
+  board: ({
+    square: Square;
+    type: PieceSymbol;
+    color: Color;
+  } | null)[][];
+  socket: WebSocket;
 }) => {
   const [from, setFrom] = useState<null | Square>(null);
+
   return (
-    <div className="text-white-200 ">
-      {chessBoardProps.board.map((row, i) => {
+    <div className="text-red-500 ">
+      {board.map((row, i) => {
         return (
-          <div key={i} className="flex">
+          <div key={i} className="flex ">
             {row.map((square, j) => {
               const squareRepresentation = (String.fromCharCode(97 + (j % 8)) +
                 "" +
@@ -43,7 +43,7 @@ const ChessBoard = ({
                     if (!from) {
                       setFrom(squareRepresentation);
                     } else {
-                      chessBoardProps.socket?.send(
+                      socket.send(
                         JSON.stringify({
                           type: MOVE,
                           payload: {
@@ -56,11 +56,11 @@ const ChessBoard = ({
                       );
 
                       setFrom(null);
-                      chessBoardProps.chess.move({
+                      chess.move({
                         from,
                         to: squareRepresentation,
                       });
-                      chessBoardProps.setBoard(chessBoardProps.chess.board());
+                      setBoard(chess.board());
                       console.log({
                         from,
                         to: squareRepresentation,
@@ -68,17 +68,21 @@ const ChessBoard = ({
                     }
                   }}
                   key={j}
-                  className={`w-16 h-16 ${(i + j) % 2 === 0 ? "bg-slate-800" : "bg-white"}`}
+                  className={`w-20 h-20 flex justify-center items-center p-2 ${
+                    (i + j) % 2 === 0 ? "bg-slate-800" : "bg-slate-100"
+                  }`}
                 >
-                  <div className="w-full justify-center flex h-full">
-                    <div className="justify-center flex items-center">
-                      {square ? (
-                        <img
-                          className="w-8"
-                          src={`/${square?.color === "b" ? "b" + square?.type : "w" + square?.type}.png`}
-                        />
-                      ) : null}
-                    </div>
+                  <div className="">
+                    {square ? (
+                      <img
+                        className="w-full"
+                        src={`/${
+                          square?.color === "b"
+                            ? "b" + square?.type
+                            : `w${square?.type}`
+                        }.png`}
+                      />
+                    ) : null}
                   </div>
                 </div>
               );
@@ -89,5 +93,3 @@ const ChessBoard = ({
     </div>
   );
 };
-
-export default ChessBoard;

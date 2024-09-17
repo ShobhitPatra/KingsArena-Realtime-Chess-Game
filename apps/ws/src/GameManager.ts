@@ -22,7 +22,7 @@ export class GameManager {
     this.users.filter((user) => user !== socket);
   }
 
-  addHandler(socket: WebSocket) {
+  private addHandler(socket: WebSocket) {
     socket.on("message", (data) => {
       const message = JSON.parse(data.toString());
 
@@ -39,7 +39,7 @@ export class GameManager {
           (game) => game.player1 === socket || game.player2 === socket
         );
         if (game) {
-          game.makeMove(socket, message.move);
+          game.makeMove(socket, message.payload.move);
         }
       }
     });
