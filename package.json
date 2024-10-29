@@ -1,27 +1,19 @@
 {
-  "name": "ChessGame",
-  "private": true,
+  "name": "chess_game",
+  "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "devDependencies": {
-    "prettier": "^3.2.5",
-    "turbo": "^2.1.1",
-    "typescript": "^5.4.5"
+    "@types/node": "^22.8.4"
   },
-  "engines": {
-    "node": ">=18"
-  },
-  "packageManager": "npm@10.4.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "dependencies": {
-    "@types/ws": "^8.5.12",
-    "ws": "^1.0.0"
+    "@prisma/client": "^5.21.1",
+    "prisma": "^5.21.1"
   }
 }
