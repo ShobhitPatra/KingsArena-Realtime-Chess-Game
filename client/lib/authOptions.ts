@@ -4,11 +4,24 @@ import prisma from "./db";
 import { JWT } from "next-auth/jwt";
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
 
+declare module "next-auth" {
+  interface Session {
+    user?: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    };
+  }
+}
+const GOOGLE_CLIENT_ID =
+  "18096936678-lhn5gnqgef68c3mjl3dacp9fpdds7nr9.apps.googleusercontent.com";
+const GOOGLE_CLIENT_SECRET = "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";
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET,
     }),
   ],
   pages: {},
@@ -33,7 +46,7 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (user) {
+        if (user && session.user) {
           session.user.id = user.id;
         }
       } catch (error) {
@@ -47,21 +60,23 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ account, profile }) {
       try {
-        if (account?.provider === "google") {
-          const user = await prisma.user.findFirst({
-            where: {
-              email: profile?.email,
-            },
-          });
-          if (!user) {
-            await prisma.user.create({
-              data: {
-                email: profile?.email!,
-                name: profile?.name!,
-                image: profile?.image!,
-                provider: "Google",
+        if (profile) {
+          if (account?.provider === "google") {
+            const user = await prisma.user.findFirst({
+              where: {
+                email: profile?.email,
               },
             });
+            if (!user) {
+              await prisma.user.create({
+                data: {
+                  email: profile.email!,
+                  name: profile.name!,
+                  image: profile.image! || "",
+                  provider: "Google",
+                },
+              });
+            }
           }
         }
         return true;
