@@ -4,21 +4,23 @@ import { INIT_GAME, MOVE } from "./payloadMessages";
 
 export class GameManager {
   private pendingUser: Socket | null;
+  private pendingUserId: string;
   private users: Socket[] | null;
   private games: Game[];
 
   constructor() {
     this.pendingUser = null;
+    this.pendingUserId = "";
     this.users = [];
     this.games = [];
   }
 
-  addUser(player: Socket) {
+  addUser(player: Socket, playerId: string) {
     this.users?.push(player);
-    this.addHandler(player);
+    this.addHandler(player, playerId);
   }
 
-  addHandler(player: Socket) {
+  addHandler(player: Socket, playerId: string) {
     //handles game initialization
     player.on(INIT_GAME, async (data) => {
       try {
@@ -27,12 +29,13 @@ export class GameManager {
           if (this.pendingUser) {
             //create game in db
             const game = new Game(this.pendingUser, player);
-            game.initializeNewGame();
+            game.initializeNewGame(this.pendingUserId, playerId);
             // this.games.push(newGame)
             this.pendingUser = null;
           }
         } else {
           this.pendingUser = player;
+          this.pendingUserId = playerId;
         }
       } catch (error: any) {
         console.log("error while initializing game : ", error.message);
