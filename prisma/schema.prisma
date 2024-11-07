@@ -17,12 +17,41 @@ datasource db {
 model User{
   id        String @id  @default(uuid())
   name      String
-  email     String @unique
+  email     String  @unique
   image     String
+  gamesAsWhite Game[] @relation("GamesAsWhite")
+  gamesAsBlack Game[] @relation("GamesAsBlack")
   provider  Provider
 }
+model Game {
+  id String @id @default(uuid())
+  whitePlayerId String
+  blackPlayerId String
+  whitePlayer User @relation("GamesAsWhite",fields: [whitePlayerId],references: [id])
+  blackPlayer User @relation("GamesAsBlack",fields: [blackPlayerId],references: [id])
+  result GameResult?
+  moves Move[]
+  createdAt DateTime @default(now())
 
+
+}
+
+model Move{
+  id String @id @default(uuid())
+  moveNumber Int
+  from String
+  to String
+  gameId String
+  game Game @relation(fields: [gameId],references: [id])
+  createdAt DateTime @default(now())
+
+}
 enum Provider{
   Google
   Credentials
+}
+
+enum GameResult{
+  WhiteWins
+  BlackWins
 }
