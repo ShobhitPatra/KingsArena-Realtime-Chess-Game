@@ -1,6 +1,8 @@
 import { Server, Socket } from "socket.io";
+import { GameManager } from "./gameManager";
+import { getAuthenticatedUser } from "../utils/getAuthenticatedUser";
 
-class SocketManager {
+export class SocketManager {
   private _io: Server;
 
   constructor() {
@@ -15,16 +17,9 @@ class SocketManager {
   public initHandlers() {
     this._io.on("connect", (socket) => {
       console.log(`new socket connnected ${socket.id}`);
-
-      //INIT_GAME
-      socket.on("event:init_game", () => {
-        console.log("game initailized");
-      });
-
-      //MOVE
-      socket.on("event:move", () => {
-        console.log("move made");
-      });
+      const authUser = getAuthenticatedUser();
+      const gameManager = new GameManager();
+      gameManager.addUser(socket, authUser.id);
     });
   }
   get io() {

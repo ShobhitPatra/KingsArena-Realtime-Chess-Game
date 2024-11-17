@@ -14,14 +14,12 @@ declare module "next-auth" {
     };
   }
 }
-const GOOGLE_CLIENT_ID =
-  "18096936678-lhn5gnqgef68c3mjl3dacp9fpdds7nr9.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = "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";
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
   ],
   pages: {},
