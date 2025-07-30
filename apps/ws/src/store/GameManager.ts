@@ -4,24 +4,52 @@ import { Game } from "./Game";
 
 const GAME_QUEUE = "game_queue";
 
-export class GameManager {
+class GameManager {
+  private static instance: GameManager;
   public redis: RedisClientType;
   public games: Game[];
 
   private async init() {
-    await this.redis.connect();
+    try {
+      await this.redis.connect();
+      console.log("redis clent initiaed for game queue");
+    } catch (err) {
+      console.error("error initializing redis client for game queue");
+    }
   }
 
-  constructor() {
-    this.redis = createClient();
+  private constructor() {
+    this.redis = createClient({
+      url: "redis://localhost:6379",
+    });
     this.init();
     this.games = [];
   }
 
+  public static getInstance() {
+    if (!GameManager.instance) {
+      GameManager.instance = new GameManager();
+    }
+    return GameManager.instance;
+  }
+
   public async addUser(user: User) {
-    this.redis.rPush(GAME_QUEUE, JSON.stringify(user));
-    const queuelength = await this.redis.lLen(GAME_QUEUE);
-    if (queuelength >= 2) {
+    const queueLength = await this.redis.lLen(GAME_QUEUE);
+    const existingUserInQueue: string[] = await this.redis.lRange(
+      GAME_QUEUE,
+      0,
+      queueLength
+    );
+    const userAlreadyInQueue = existingUserInQueue.find(
+      (currentUser) => JSON.parse(currentUser).id === user.id
+    );
+    if (userAlreadyInQueue) {
+      console.log("user already in queue");
+    }
+    await this.redis.rPush(GAME_QUEUE, JSON.stringify(user));
+    console.log(`pushed user ${user} in waiting queue`);
+    const updatedQueuelength = await this.redis.lLen(GAME_QUEUE);
+    if (updatedQueuelength >= 2) {
       const player1Str = await this.redis.lPop(GAME_QUEUE);
       const player2Str = await this.redis.lPop(GAME_QUEUE);
       if (!player1Str || !player2Str) return;
@@ -35,6 +63,16 @@ export class GameManager {
     const gameId = Math.random().toString();
     const game = new Game(gameId, player1.id, player2.id);
     this.games.push(game);
+    game.notifyPlayer(player1.id, {
+      message: "game started",
+      color: "w",
+      gameId: gameId,
+    });
+    game.notifyPlayer(player2.id, {
+      message: "game started",
+      color: "b",
+      gameId: gameId,
+    });
   }
   public async removeUser(user: User) {
     const temp_queue: string[] = [];
@@ -61,4 +99,12 @@ export class GameManager {
       console.log(`removed user ${user} from the queue`);
     }
   }
+  //remove game (case : user resigns)
+  public removeGame(gameId: string) {
+    const existingGame = this.games.find((game) => game.gameId === gameId);
+    if (!existingGame) return;
+    this.games = this.games.filter((game) => game.gameId != gameId);
+  }
 }
+
+export const gameManager = GameManager.getInstance();

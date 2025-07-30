@@ -1,5 +1,8 @@
 import { Chess, Square } from "chess.js";
-import { GameResult, Move } from "../types";
+import { GAME_OVER, GameResult, MOVE, Move } from "../types";
+import { pubSubManager } from "./PubSubManager";
+import { userSocketMap } from "..";
+import { gameManager } from "./GameManager";
 
 export class Game {
   public gameId: string;
@@ -8,42 +11,67 @@ export class Game {
   public board: Chess;
   private moveCount: number = 0;
 
-  constructor(gameId: string, playerASWhite: string, playerAsBlack: string) {
+  constructor(gameId: string, player1: string, player2: string) {
     this.gameId = gameId;
     this.board = new Chess();
-    this.playerAsBlack = playerAsBlack;
-    this.playerAsWhite = playerASWhite;
+    this.playerAsWhite = player1;
+    this.playerAsBlack = player2;
+    pubSubManager.subscribe(gameId, JSON.stringify(this.playerAsWhite));
+    pubSubManager.subscribe(gameId, JSON.stringify(this.playerAsBlack));
+  }
+
+  public notifyPlayer(playerId: string, message: any) {
+    const userSocket = userSocketMap.get(playerId);
+    if (userSocket && userSocket.readyState === userSocket.OPEN) {
+      userSocket.send(JSON.stringify(message));
+    }
   }
   //makemove
   makemove(move: Move, playerId: string) {
     const playerColor = playerId === this.playerAsWhite ? "w" : "b";
-    if (this.board.turn() !== playerColor) return;
+
+    if (this.board.turn() !== playerColor) {
+      this.notifyPlayer(playerId, {
+        type: "ERROR",
+        messgae: "Not your turn",
+      });
+      return;
+    }
 
     try {
+      let moveResult;
       if (this.isPromoting(move)) {
-        this.board.move({
+        moveResult = this.board.move({
           from: move.from,
           to: move.to,
           promotion: "q",
         });
-        this.moveCount = this.board.history().length;
       } else {
-        this.board.move(move);
+        moveResult = this.board.move(move);
       }
+      if (!moveResult) {
+        this.notifyPlayer(playerId, {
+          type: "ERROR",
+          message: "invalid move",
+        });
+        return;
+      }
+
       this.moveCount = this.board.history().length;
+      this.broadcastMove(moveResult, playerId);
+
       if (this.board.isGameOver()) {
-        const winner = this.board.turn();
         const result = this.getResult(this.board);
+        const winner = this.determineWinner(result);
         this.broadcastResult(result, winner);
+        this.cleanup();
       }
-      const opponentId =
-        playerId === this.playerAsBlack
-          ? this.playerAsWhite
-          : this.playerAsBlack;
-      this.sendMoveToOpponent(move, opponentId);
-      this.broadcastMove(move, playerId);
     } catch (error) {
-      console.log(`error while making move ${error}`);
+      console.error(`error while making move ${error}`);
+      this.notifyPlayer(playerId, {
+        type: "ERROR",
+        message: "error while making move",
+      });
     }
   }
 
@@ -67,24 +95,66 @@ export class Game {
     return false;
   }
 
-  private sendMoveToOpponent(move: Move, playerId: string) {
-    console.log({
-      move,
-    });
+  public async endGame(playerId: string, reason: any) {
+    await pubSubManager.publish(
+      this.gameId,
+      JSON.stringify({
+        type: GAME_OVER,
+        gameId: this.gameId,
+        reason: reason ?? "resignation",
+        resignedBy: playerId,
+        winner: playerId === this.playerAsBlack ? "w" : "b",
+        finalFen: this.board.fen(),
+        movecount: this.moveCount,
+      })
+    );
+    this.cleanup();
   }
 
-  private broadcastMove(move: Move, playerId: string) {
-    console.log({
+  private async broadcastMove(move: Move, playerId: string) {
+    const message = {
+      type: MOVE,
+      gameId: this.gameId,
+      playerId,
+      color: playerId === this.playerAsBlack ? "b" : "w",
       move,
-      message: `move made by ${playerId}`,
-    });
+      fen: this.board.fen(),
+      turn: this.board.turn(),
+      moveCount: this.moveCount,
+      check: this.board.inCheck(),
+      checkmate: this.board.isCheckmate(),
+      stalemate: this.board.isStalemate(),
+    };
+    await pubSubManager.publish(this.gameId, JSON.stringify(message));
+    const opponent =
+      playerId === this.playerAsBlack ? this.playerAsWhite : this.playerAsBlack;
+    this.notifyPlayer(opponent, message);
   }
 
-  private broadcastResult(result: GameResult | undefined, winner: string) {
-    console.log({
-      winner,
-      result,
-    });
+  private broadcastResult(
+    result: GameResult | undefined,
+    winner: string | null
+  ) {
+    pubSubManager.publish(
+      this.gameId,
+      JSON.stringify({
+        type: GAME_OVER,
+        gameId: this.gameId,
+        winner,
+        result,
+        finalFen: this.board.fen(),
+        movecount: this.moveCount,
+      })
+    );
+  }
+
+  private determineWinner(result: GameResult | undefined) {
+    if (result === GameResult.CHECKMATE) {
+      return this.board.turn() === "w"
+        ? this.playerAsBlack
+        : this.playerAsWhite;
+    }
+    return null;
   }
 
   private getResult(board: Chess): GameResult | undefined {
@@ -93,5 +163,11 @@ export class Game {
     if (board.isDraw()) return GameResult.DRAW;
     if (board.isThreefoldRepetition()) return GameResult.THREEFOLDREPITITION;
     return undefined;
+  }
+
+  private cleanup() {
+    pubSubManager.unsubscribe(this.gameId, { id: this.playerAsBlack } as any);
+    pubSubManager.unsubscribe(this.gameId, { id: this.playerAsWhite } as any);
+    gameManager.removeGame(this.gameId);
   }
 }
