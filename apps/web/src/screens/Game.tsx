@@ -1,14 +1,16 @@
+import { moves_example } from "@/example";
 import { ChessBoard } from "../components/game/ChessBoard";
-import { Header } from "../components/game/Header";
+
 import { MovesPanel } from "../components/game/MovesPanel";
+import { SideBar } from "@/components/SideBar";
 
 export const Game = () => {
   return (
-    <div>
-      <Header />
-      <div className="flex">
+    <div className="h-screen ">
+      <div className="h-full flex flex-wrap items-center justify-between  ">
+        <SideBar />
         <ChessBoard />
-        <MovesPanel />
+        <MovesPanel moves={moves_example} />
       </div>
     </div>
   );
