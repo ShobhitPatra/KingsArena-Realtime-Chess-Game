@@ -16,7 +16,7 @@ interface MovesPanelProps {
 
 export const MovesPanel = ({ moves }: MovesPanelProps) => {
   return (
-    <Card className="h-full w-xs ">
+    <Card className="bg-gray-100 h-full w-xs ">
       <CardHeader>
         <GameOptions />
         <CardTitle className="text-lg font-semibold text-center">

@@ -1,3 +1,9 @@
+import { Landing } from "@/components/home/Landing";
+
 export const Home = () => {
-  return <div>home</div>;
+  return (
+    <div>
+      <Landing />
+    </div>
+  );
 };
