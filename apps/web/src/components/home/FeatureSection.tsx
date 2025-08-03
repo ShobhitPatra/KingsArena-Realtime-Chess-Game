@@ -51,6 +51,7 @@ export const FeatureSection = () => {
     <section className="flex flex-wrap justify-center gap-x-4 gap-y-4">
       {features.map((feature) => (
         <FeatureCard
+          key={feature.title}
           title={feature.title}
           description={feature.description}
           icon={feature.icon}

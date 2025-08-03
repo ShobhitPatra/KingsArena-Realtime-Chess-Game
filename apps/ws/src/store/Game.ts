@@ -1,5 +1,5 @@
 import { Chess, Square } from "chess.js";
-import { GAME_OVER, GameResult, MOVE, Move } from "../types";
+import { GAME_OVER, GameResult, MOVE, Move, MOVE_MADE } from "../types";
 import { pubSubManager } from "./PubSubManager";
 import { userSocketMap } from "..";
 import { gameManager } from "./GameManager";
@@ -28,15 +28,16 @@ export class Game {
   }
   //makemove
   makemove(move: Move, playerId: string) {
-    const playerColor = playerId === this.playerAsWhite ? "w" : "b";
+    // const playerColor = playerId === this.playerAsWhite ? "w" : "b";
 
-    if (this.board.turn() !== playerColor) {
-      this.notifyPlayer(playerId, {
-        type: "ERROR",
-        messgae: "Not your turn",
-      });
-      return;
-    }
+    // if (this.board.turn() !== playerColor) {
+    //   console.log("4");
+    //   this.notifyPlayer(playerId, {
+    //     type: "ERROR",
+    //     messgae: "Not your turn",
+    //   });
+    //   return;
+    // }
 
     try {
       let moveResult;
@@ -50,6 +51,7 @@ export class Game {
         moveResult = this.board.move(move);
       }
       if (!moveResult) {
+        console.log("5");
         this.notifyPlayer(playerId, {
           type: "ERROR",
           message: "invalid move",
@@ -58,7 +60,7 @@ export class Game {
       }
 
       this.moveCount = this.board.history().length;
-      this.broadcastMove(moveResult, playerId);
+      this.broadcastMove(move, playerId);
 
       if (this.board.isGameOver()) {
         const result = this.getResult(this.board);
@@ -113,7 +115,7 @@ export class Game {
 
   private async broadcastMove(move: Move, playerId: string) {
     const message = {
-      type: MOVE,
+      type: MOVE_MADE,
       gameId: this.gameId,
       playerId,
       color: playerId === this.playerAsBlack ? "b" : "w",
@@ -129,6 +131,7 @@ export class Game {
     const opponent =
       playerId === this.playerAsBlack ? this.playerAsWhite : this.playerAsBlack;
     this.notifyPlayer(opponent, message);
+    this.notifyPlayer(playerId, message);
   }
 
   private broadcastResult(

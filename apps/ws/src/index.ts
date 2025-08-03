@@ -22,7 +22,6 @@ ws.on("connection", function connection(socket) {
       }
       //start game
       if (payload.type === GAME_INIT) {
-        
         await gameManager.addUser(user);
       }
       //move

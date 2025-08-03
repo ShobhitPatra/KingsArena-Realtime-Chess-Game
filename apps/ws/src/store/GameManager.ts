@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from "redis";
-import { User } from "../types";
+import { START_GAME, User } from "../types";
 import { Game } from "./Game";
 
 const GAME_QUEUE = "game_queue";
@@ -49,6 +49,7 @@ class GameManager {
     await this.redis.rPush(GAME_QUEUE, JSON.stringify(user));
     console.log(`pushed user ${user} in waiting queue`);
     const updatedQueuelength = await this.redis.lLen(GAME_QUEUE);
+    console.log("queuelength : ", updatedQueuelength);
     if (updatedQueuelength >= 2) {
       const player1Str = await this.redis.lPop(GAME_QUEUE);
       const player2Str = await this.redis.lPop(GAME_QUEUE);
@@ -63,13 +64,14 @@ class GameManager {
     const gameId = Math.random().toString();
     const game = new Game(gameId, player1.id, player2.id);
     this.games.push(game);
+    console.log("new game created :", game);
     game.notifyPlayer(player1.id, {
-      message: "game started",
+      message: START_GAME,
       color: "w",
       gameId: gameId,
     });
     game.notifyPlayer(player2.id, {
-      message: "game started",
+      message: START_GAME,
       color: "b",
       gameId: gameId,
     });
