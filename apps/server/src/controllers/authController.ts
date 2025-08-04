@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-
-export const signup = (req:Request,res:Response) => {
-    const {name,email} = req.body
-    
-
+import { signupSchema, signinSchema } from "@repo/schemas";
+export const signup = (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
 };
 export const signin = () => {};
 export const signout = () => {};
