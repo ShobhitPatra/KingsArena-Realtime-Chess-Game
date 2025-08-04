@@ -1,7 +1,7 @@
 import { useUserStore } from "@repo/store";
 import { useEffect, useRef, useState } from "react";
 export const useSocket = () => {
-  const WS_URl = "ws://localhost:8000";
+  const WS_URl = "ws://localhost:8080";
   const [socket, setSocket] = useState<null | WebSocket>(null);
   const { user, setUser } = useUserStore();
   const wsRef = useRef<WebSocket | null>(null);

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2020", // or above
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["src"]
+}

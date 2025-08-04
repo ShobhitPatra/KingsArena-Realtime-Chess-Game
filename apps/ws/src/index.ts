@@ -76,7 +76,7 @@ ws.on("connection", function connection(socket) {
     console.error(`WEBSOCKER ERROR : ${err}`);
   });
 });
-const PORT = 8000;
+const PORT = 8080;
 httpServer.listen(PORT, function server() {
   console.log(`server runnig on PORT ${PORT}`);
 });
