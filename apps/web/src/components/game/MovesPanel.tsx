@@ -7,7 +7,7 @@ export interface Move {
   from: string;
   to: string;
   color: "w" | "b";
-  moveNumber?: number;
+  moveNumber?: string;
 }
 
 interface MovesPanelProps {

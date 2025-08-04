@@ -3,6 +3,7 @@ interface Move {
   moveNumber: string;
   from: string;
   to: string;
+  color: "w" | "b";
   promotion?: "q";
 }
 
