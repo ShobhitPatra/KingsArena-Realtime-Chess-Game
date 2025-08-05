@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { signup, signin, signout } from "../controllers/authController";
+import { getUser, getHistory } from "../controllers/userContrroller";
+import { verifyToken } from "../middlewares/verifyToken";
 
 const router = Router();
 
-router.post("/signup", signup);
-router.post("/signin", signin);
-router.post("/signout", signout);
+router.get("/me", verifyToken, getUser);
+router.get("/history", verifyToken, getHistory);
 
 export default router;
