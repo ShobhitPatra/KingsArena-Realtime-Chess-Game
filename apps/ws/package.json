@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b",
     "dev": "tsc -b && node dist/index.js",
     "start": "tsc -b && node dist/index.js"
   },
@@ -12,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@repo/db": "*",
     "@repo/messages": "*",
     "chess.js": "^1.4.0",
     "redis": "^5.6.1",

@@ -1,12 +1,10 @@
 import express from "express";
-import authRoutes from "./routes/authRoute";
-import userRoutes from "./routes/userRoute";
+import apiRoutes from "./routes/route";
 
 const app = express();
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
+app.use("/api", apiRoutes);
 
 const PORT = 8000;
 app.listen(PORT, () => {

@@ -3,23 +3,7 @@ import z from "zod";
 import { prisma } from "@repo/db";
 import { hash } from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-const signupSchema = z
-  .object({
-    name: z.string().min(1, { message: "required field" }),
-    email: z.string().email({ message: "enter a valid email" }),
-    password: z.string().min(6, { message: "password too short" }),
-    confirmPassword: z.string().min(6),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-const signinSchema = z.object({
-  email: z.string().email({ message: "enter a valid email" }),
-  password: z.string().min(6, { message: "password too short" }),
-});
+import { signinSchema, signupSchema } from "../schemas/schema";
 
 export const signup = async (req: Request, res: Response) => {
   try {
