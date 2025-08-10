@@ -1,5 +1,8 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { Github, History, Home, LogOut, Menu, X } from "lucide-react";
+import { useUserStore } from "@repo/store";
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 
 interface NavItem {
   href: string;
@@ -13,6 +16,8 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  const navigate = useNavigate();
+  const { user, setUser } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
 
   // Close sidebar when clicking outside on mobile
@@ -58,16 +63,27 @@ export const Layout = ({ children }: LayoutProps) => {
   }, [isOpen]);
 
   const handleLogout = () => {
-    // Add your logout logic here
-    console.log("Logout clicked");
-    setIsOpen(false);
+    if (!user || user.isGuest) {
+      navigate("/signin");
+    }
+    setUser(null);
+    const notify = () =>
+      toast.success("Logged out successfully", {
+        autoClose: 1500,
+      });
+    notify();
   };
 
   const navItems: NavItem[] = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/history", icon: History, label: "History" },
     { href: "/contribute", icon: Github, label: "Contribute" },
-    { href: "#", icon: LogOut, label: "Logout", onClick: handleLogout },
+    {
+      href: "#",
+      icon: LogOut,
+      label: user ? "Logout" : "Login",
+      onClick: handleLogout,
+    },
   ];
 
   const closeSidebar = () => setIsOpen(false);
@@ -156,6 +172,7 @@ export const Layout = ({ children }: LayoutProps) => {
         {/* Main content - Scrollable */}
         <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
       </div>
+      <ToastContainer />
     </div>
   );
 };

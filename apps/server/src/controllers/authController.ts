@@ -6,8 +6,7 @@ import jwt from "jsonwebtoken";
 import { signinSchema, signupSchema } from "../schemas/schema";
 
 export const signup = async (req: Request, res: Response) => {
-  try {
-    const { name, email, password } = req.body;
+  try {    const { name, email, password } = req.body;
     const { success } = signupSchema.safeParse(req.body);
     if (!success) {
       return res.status(400).json({

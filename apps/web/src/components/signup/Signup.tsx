@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
+import { useUserStore } from "@repo/store";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,6 +12,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 
 const formSchema = z
   .object({
@@ -25,6 +28,9 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 export const Signup = () => {
+  const { setUser, user } = useUserStore();
+  const navigate = useNavigate();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,8 +40,56 @@ export const Signup = () => {
       confirmPassword: "",
     },
   });
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user]);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      if (
+        !values.email ||
+        !values.name ||
+        !values.password ||
+        !values.confirmPassword
+      )
+        return;
+      const url = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${url}/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          confirmPassword: values.confirmPassword,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Http error! Status :${response.status}`);
+      }
+      const data = await response.json();
+      const user = {
+        id: data.user.id,
+        name: data.user.name,
+        token: data.token,
+        isGuest: false,
+      };
+      setUser(user);
+      const notify = () => toast.success("Registered successfully");
+      notify();
+    } catch (error) {
+      console.error("error sending data to /signup", error);
+      const notify = () =>
+        toast.error("Registration failed", {
+          autoClose: 1500,
+        });
+      notify();
+    }
   }
   return (
     <div className="bg-gray-300 h-screen flex items-center justify-center flex-wrap">
@@ -136,8 +190,15 @@ export const Signup = () => {
           >
             Submit
           </Button>
+          <a href="/signin" className="text-center">
+            {" "}
+            <h4 className="pb-2 text-shadow-gray-900 hover:text-blue-700  hover:underline ">
+              Already have an account ?{" "}
+            </h4>
+          </a>
         </form>
       </Form>
+      <ToastContainer />
     </div>
   );
 };

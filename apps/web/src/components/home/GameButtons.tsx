@@ -6,16 +6,33 @@ import { useActiveGameStore } from "@repo/store";
 import { GAME_INIT, START_GAME } from "@repo/messages";
 import { useEffect, useState } from "react";
 import { generateRandomUser } from "@/lib/generateRandomUser";
+import { toast } from "react-toastify";
 export const GameButtons = () => {
-  const [iseGuest, setIsGuest] = useState<boolean | null>(null);
   const socket = useSocket();
   const { user, setUser } = useUserStore();
   const { setColor, setGameId, gameId, color } = useActiveGameStore();
   const navigate = useNavigate();
-
+  const [isGuest, setIsGuest] = useState<boolean | null>(null);
   const handlePlayOnline = () => {
-    // In a real app, this would handle online matchmaking
-    navigate("/game");
+    setIsGuest(false);
+    if (!user || user.isGuest) {
+      const notify = () => toast.error("Login to play Online");
+      notify();
+    }
+    try { 
+      if (!socket || !user) return;
+      setTimeout(() => {}, 2000);
+      console.log("returned");
+      socket.send(
+        JSON.stringify({
+          type: GAME_INIT,
+          user,
+        })
+      );
+      console.log("send init");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -32,26 +49,61 @@ export const GameButtons = () => {
   }, [socket]);
 
   useEffect(() => {
-    if (iseGuest) {
-      const randomUser = generateRandomUser();
-      setUser(randomUser);
-      console.log(user);
+    async function createRandomUserinDb() {
+      try {
+        const randomUser = generateRandomUser();
+        const url = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${url}/auth/signup`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: randomUser.name,
+            email: randomUser.email,
+            password: randomUser.password,
+            confirmPassword: randomUser.confirmPassword,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error(`Http error! Status :${response.status}`);
+        }
+        const data = await response.json();
+        console.log(data);
+        const user = {
+          id: data.user.id,
+          name: data.user.name,
+          token: data.token,
+          isGuest: true,
+        };
+        setUser(user);
+        const notify = () =>
+          toast.success(
+            "Logged in as Guest successfully ,Click again to start matchmaking"
+          );
+        notify();
+      } catch (error) {
+        console.error("erron creating random user in db", error);
+      }
     }
-  }, [iseGuest, setIsGuest]);
+    if (isGuest) {
+      createRandomUserinDb();
+    }
+  }, [isGuest, setIsGuest]);
 
-  const handlePlayAsGuest = () => {
-    setIsGuest(true);
+  const handlePlayAsGuest = async () => {
     try {
-      console.log("1");
+      setIsGuest(true);
       if (!socket || !user) return;
-      console.log("2");
+      setTimeout(() => {}, 2000);
+      console.log("returned");
       socket.send(
         JSON.stringify({
           type: GAME_INIT,
           user,
         })
       );
-      console.log("sent");
+      console.log("send init");
     } catch (error) {
       console.error(error);
     }

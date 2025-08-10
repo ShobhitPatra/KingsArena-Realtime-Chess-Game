@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
+import { ToastContainer, toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,12 +12,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useEffect } from "react";
+import { useUserStore } from "@repo/store";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
   email: z.string().email({ message: "enter a valid email" }),
   password: z.string().min(6, { message: "password too short" }),
 });
 export const Signin = () => {
+  const { user, setUser } = useUserStore();
+  const navigate = useNavigate();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -25,8 +31,46 @@ export const Signin = () => {
       password: "",
     },
   });
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user]);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      if (!values.email || !values.password) return;
+      const url = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${url}/auth/signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Http error! Status :${response.status}`);
+      }
+      const data = await response.json();
+      const user = {
+        id: data.existingUser.id,
+        name: data.existingUser.name,
+        token: data.token,
+        isGuest: false,
+      };
+      setUser(user);
+      const notify = () => toast.success("Logged in successfully");
+      notify();
+    } catch (error) {
+      console.error("error sending data to /signup", error);
+      const notify = () =>
+        toast.error("Log in failed", {
+          autoClose: 1500,
+        });
+      notify();
+    }
   }
   return (
     <div className="bg-gray-300 h-screen flex items-center justify-center flex-wrap">
@@ -91,8 +135,17 @@ export const Signin = () => {
           >
             Submit
           </Button>
+
+          <a href="/signup" className="text-center">
+            {" "}
+            <h4 className="pb-2 text-shadow-gray-900 hover:text-blue-700  ">
+              New user ?{" "}
+              <span className=" hover:underline ">Register now</span>{" "}
+            </h4>
+          </a>
         </form>
       </Form>
+      <ToastContainer />
     </div>
   );
 };
