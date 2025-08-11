@@ -7,21 +7,40 @@ import { GAME_INIT, START_GAME } from "@repo/messages";
 import { useEffect, useState } from "react";
 import { generateRandomUser } from "@/lib/generateRandomUser";
 import { toast } from "react-toastify";
+import { useModalStore } from "@/store/useModalStore";
 export const GameButtons = () => {
   const socket = useSocket();
+  const { openModal } = useModalStore();
   const { user, setUser } = useUserStore();
   const { setColor, setGameId, gameId, color } = useActiveGameStore();
   const navigate = useNavigate();
   const [isGuest, setIsGuest] = useState<boolean | null>(null);
+
   const handlePlayOnline = () => {
     setIsGuest(false);
     if (!user || user.isGuest) {
-      const notify = () => toast.error("Login to play Online");
-      notify();
+      toast.error("Login to play Online");
     }
-    try { 
+    try {
       if (!socket || !user) return;
-      setTimeout(() => {}, 2000);
+      socket.send(
+        JSON.stringify({
+          type: GAME_INIT,
+          user,
+        })
+      );
+      openModal("match_making");
+      console.log("send init");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handlePlayAsGuest = async () => {
+    try {
+      setIsGuest(true);
+      if (!socket || !user) return;
+      openModal("match_making");
       console.log("returned");
       socket.send(
         JSON.stringify({
@@ -77,11 +96,20 @@ export const GameButtons = () => {
           isGuest: true,
         };
         setUser(user);
-        const notify = () =>
-          toast.success(
-            "Logged in as Guest successfully ,Click again to start matchmaking"
+
+        toast.success(
+          "Logged in as Guest successfully ,Click again to start matchmaking"
+        );
+        if (socket) {
+          openModal("match_making");
+          console.log("returned");
+          socket.send(
+            JSON.stringify({
+              type: GAME_INIT,
+              user,
+            })
           );
-        notify();
+        }
       } catch (error) {
         console.error("erron creating random user in db", error);
       }
@@ -90,24 +118,6 @@ export const GameButtons = () => {
       createRandomUserinDb();
     }
   }, [isGuest, setIsGuest]);
-
-  const handlePlayAsGuest = async () => {
-    try {
-      setIsGuest(true);
-      if (!socket || !user) return;
-      setTimeout(() => {}, 2000);
-      console.log("returned");
-      socket.send(
-        JSON.stringify({
-          type: GAME_INIT,
-          user,
-        })
-      );
-      console.log("send init");
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   useEffect(() => {
     if (gameId) {
