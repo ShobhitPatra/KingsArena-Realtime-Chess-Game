@@ -4,11 +4,22 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@repo/db": ["/packages/db/src/index.ts"]
+    }
   },
+
   "references": [
     {
       "path": "./apps/server"
+    },
+    {
+      "path": "./apps/ws"
+    },
+    {
+      "path": "./apps/web"
     },
     {
       "path": "./packages/db"

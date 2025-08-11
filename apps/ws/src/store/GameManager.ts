@@ -1,6 +1,7 @@
 import { createClient, RedisClientType } from "redis";
 import { START_GAME, User } from "../types";
 import { Game } from "./Game";
+import { prisma } from "@repo/db";
 
 const GAME_QUEUE = "game_queue";
 
@@ -45,6 +46,7 @@ class GameManager {
     );
     if (userAlreadyInQueue) {
       console.log("user already in queue");
+      return;
     }
     await this.redis.rPush(GAME_QUEUE, JSON.stringify(user));
     console.log(`pushed user ${user} in waiting queue`);
@@ -59,10 +61,10 @@ class GameManager {
       this.createGame(player1, player2);
     }
   }
-  private createGame(player1: User, player2: User) {
-    //create game in db => get gameId
-    const gameId = Math.random().toString();
-    const game = new Game(gameId, player1.id, player2.id);
+  private async createGame(player1: User, player2: User) {
+    const gameId = await this.createGameInDb(player1, player2);
+    if (!gameId) return;
+    const game = new Game(gameId.toString(), player1.id, player2.id);
     this.games.push(game);
     console.log("new game created :", game);
     game.notifyPlayer(player1.id, {
@@ -75,6 +77,22 @@ class GameManager {
       color: "b",
       gameId: gameId,
     });
+  }
+  private async createGameInDb(player1: User, player2: User) {
+    try {
+      const game = await prisma.game.create({
+        data: {
+          playerAsWhiteId: player1.id,
+          playerAsBlackId: player2.id,
+          gameResult: "DRAW",
+          gameState: "ONGOING",
+        },
+      });
+
+      return game.id;
+    } catch (error) {
+      console.error("error creating game in db", error);
+    }
   }
   public async removeUser(user: User) {
     const temp_queue: string[] = [];

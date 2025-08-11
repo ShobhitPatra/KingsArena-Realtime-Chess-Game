@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import z from "zod";
 import { prisma } from "@repo/db";
 import { hash } from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { signinSchema, signupSchema } from "../schemas/schema";
 
 export const signup = async (req: Request, res: Response) => {
-  try {    const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
     const { success } = signupSchema.safeParse(req.body);
     if (!success) {
       return res.status(400).json({

@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  // output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -28,8 +28,9 @@ model User {
 
 model Game {
   id String @id @default(uuid())
-  move Move[]
-  gameResult GAME_RESULT
+  moves Move[]
+  gameResult GAME_RESULT?
+  gameState GAME_STATE
 
   playerAsWhiteId String
   playerAsBlackId String
@@ -46,7 +47,7 @@ model Move{
   moveNumber String
   from String
   to String
-  promotion String
+  promotion String?
 
   gameId String
   game Game @relation(references: [id],fields: [gameId])
@@ -58,4 +59,9 @@ enum GAME_RESULT {
   WHITE_WINS
   BLACK_WINS
   DRAW
+}
+
+enum GAME_STATE {
+  ONGOING
+  OVER
 }
