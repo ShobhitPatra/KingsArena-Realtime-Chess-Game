@@ -7,9 +7,18 @@ import {
 } from "react-chessboard";
 import { useActiveGameStore, useMoveStore, useUserStore } from "@repo/store";
 import { useSocket } from "@/hooks/useSocket";
-import { MOVE, MOVE_MADE } from "@repo/messages";
+import { GAME_OVER, MOVE, MOVE_MADE } from "@repo/messages";
+import { ModalResign } from "../modals/ModalResign";
+import { ModalDraw } from "../modals/ModalDraw";
+import { ModalGameOver } from "../modals/ModalGameOver";
+import { ModalMatchMaking } from "../modals/ModalMatchMaking";
+import { useModalStore } from "@/store/useModalStore";
 
 export const ChessBoard = () => {
+  const [winner, setWinner] = useState("Draw");
+  const [result, setResult] = useState("Draw");
+  const { openModal } = useModalStore();
+
   const [chessGame] = useState(() => new Chess());
   const initialFen = chessGame.fen();
   const [chessPosition, setChessPosition] = useState<string>(initialFen);
@@ -28,7 +37,7 @@ export const ChessBoard = () => {
     if (color === "b") {
       setBoardOrientation("black");
     }
-  }, []);
+  }, [color]);
 
   useEffect(() => {
     if (!socket) return;
@@ -48,16 +57,50 @@ export const ChessBoard = () => {
         setMoves(move);
         console.log("move", move);
       }
+      if (message.type === GAME_OVER) {
+        console.log(message);
+
+        setWinner(message.winner);
+        setResult(message.reason);
+        openModal("game_over");
+      }
     };
     socket.addEventListener("message", handleMessage);
 
     return () => {
       socket.removeEventListener("message", handleMessage);
     };
-  }, [socket, setFen, setMoves]);
+  }, [socket, setFen, setMoves, openModal]);
+
+  // useEffect(() => {
+  //   if (!socket) return;
+
+  //   const handleMessage = (event: { data: string }) => {
+  //     console.log("inside handleMessage");
+  //     const message = JSON.parse(event.data);
+  //     console.log("Received:", message);
+  //     if (message.type === MOVE_MADE) {
+  //       setFen(message.fen);
+  //       const move = {
+  //         from: message.move.from,
+  //         to: message.move.to,
+  //         moveNumber: message.moveCount,
+  //         color: message.color,
+  //       };
+  //       setMoves(move);
+  //       console.log("move", move);
+  //     }
+  //   };
+  //   socket.addEventListener("message", handleMessage);
+
+  //   return () => {
+  //     socket.removeEventListener("message", handleMessage);
+  //   };
+  // }, [socket, setFen, setMoves]);
 
   useEffect(() => {
-    if (fen) {
+    if (fen && fen !== chessPosition) {
+      // only update if different
       try {
         chessGame.load(fen);
         setChessPosition(fen);
@@ -67,9 +110,13 @@ export const ChessBoard = () => {
         console.error("Invalid FEN received:", error);
       }
     }
-  }, [fen, chessGame]);
+  }, [fen, chessGame, chessPosition]);
 
   function makeMove(move: { from: string; to: string }) {
+    const moveResult = chessGame.move(move);
+    if (!moveResult) return;
+
+    setChessPosition(chessGame.fen());
     if (!socket || !gameId || !user) return;
     try {
       if (socket.readyState === WebSocket.OPEN) {
@@ -154,9 +201,9 @@ export const ChessBoard = () => {
       if (hasMoveOptions) {
         setMoveFrom(square);
       }
-      return;
       setMoveFrom("");
       setOptionSquares({});
+      return;
     }
   }
 
@@ -188,6 +235,10 @@ export const ChessBoard = () => {
   return (
     <div className="md:h-170 md:w-170 m-2">
       <Chessboard options={chessboardOptions} />
+      <ModalResign />
+      <ModalDraw />
+      <ModalGameOver winner={winner} result={result} />
+      <ModalMatchMaking />
     </div>
   );
 };

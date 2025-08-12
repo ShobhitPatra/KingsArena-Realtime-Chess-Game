@@ -23,12 +23,13 @@ export const ModalDraw = () => {
         </DialogHeader>
 
         <DialogFooter>
-          <Button variant="secondary" onClick={() => alert("false")}>
+          <Button variant="secondary" onClick={closeModal}>
             Cancel
           </Button>
           <Button
             variant="secondary"
             className="bg-yellow-200 hover:bg-yellow-100"
+            disabled={true}
             onClick={() => alert("Deleted!")}
           >
             Draw

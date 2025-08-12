@@ -28,17 +28,6 @@ export class Game {
   }
   //makemove
   makemove(move: Move, playerId: string) {
-    // const playerColor = playerId === this.playerAsWhite ? "w" : "b";
-
-    // if (this.board.turn() !== playerColor) {
-    //   console.log("4");
-    //   this.notifyPlayer(playerId, {
-    //     type: "ERROR",
-    //     messgae: "Not your turn",
-    //   });
-    //   return;
-    // }
-
     try {
       let moveResult;
       if (this.isPromoting(move)) {
@@ -98,18 +87,19 @@ export class Game {
   }
 
   public async endGame(playerId: string, reason: any) {
-    await pubSubManager.publish(
-      this.gameId,
-      JSON.stringify({
-        type: GAME_OVER,
-        gameId: this.gameId,
-        reason: reason ?? "resignation",
-        resignedBy: playerId,
-        winner: playerId === this.playerAsBlack ? "w" : "b",
-        finalFen: this.board.fen(),
-        movecount: this.moveCount,
-      })
-    );
+    console.log("inside be endgame");
+    const message = {
+      type: GAME_OVER,
+      gameId: this.gameId,
+      reason: reason ?? "resignation",
+      resignedBy: playerId,
+      winner: playerId === this.playerAsBlack ? "w" : "b",
+      finalFen: this.board.fen(),
+      movecount: this.moveCount,
+    };
+    await pubSubManager.publish(this.gameId, JSON.stringify(message));
+    this.notifyPlayer(this.playerAsBlack, message);
+    this.notifyPlayer(this.playerAsWhite, message);
     this.cleanup();
   }
 
