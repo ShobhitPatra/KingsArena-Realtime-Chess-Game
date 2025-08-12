@@ -7,7 +7,7 @@ export const Game = () => {
   const { moves } = useMoveStore();
   return (
     <Layout>
-      <div className="bg-gray-200 h-screen flex flex-wrap items-center justify-center  ">
+      <div className="bg-gray-200 h-screen flex flex-wrap items-center justify-center ">
         <ChessBoard />
         <MovesPanel moves={moves} />
       </div>

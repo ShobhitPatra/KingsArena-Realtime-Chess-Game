@@ -13,6 +13,7 @@ import { ModalDraw } from "../modals/ModalDraw";
 import { ModalGameOver } from "../modals/ModalGameOver";
 import { ModalMatchMaking } from "../modals/ModalMatchMaking";
 import { useModalStore } from "@/store/useModalStore";
+import { PlayerClockBar } from "./PlayerClockBar";
 
 export const ChessBoard = () => {
   const [winner, setWinner] = useState("Draw");
@@ -30,7 +31,7 @@ export const ChessBoard = () => {
   );
   const socket = useSocket();
   const { user } = useUserStore();
-  const { color, fen, setFen, gameId } = useActiveGameStore();
+  const { color, fen, setFen, gameId, opponent } = useActiveGameStore();
   const { setMoves } = useMoveStore();
 
   useEffect(() => {
@@ -72,35 +73,8 @@ export const ChessBoard = () => {
     };
   }, [socket, setFen, setMoves, openModal]);
 
-  // useEffect(() => {
-  //   if (!socket) return;
-
-  //   const handleMessage = (event: { data: string }) => {
-  //     console.log("inside handleMessage");
-  //     const message = JSON.parse(event.data);
-  //     console.log("Received:", message);
-  //     if (message.type === MOVE_MADE) {
-  //       setFen(message.fen);
-  //       const move = {
-  //         from: message.move.from,
-  //         to: message.move.to,
-  //         moveNumber: message.moveCount,
-  //         color: message.color,
-  //       };
-  //       setMoves(move);
-  //       console.log("move", move);
-  //     }
-  //   };
-  //   socket.addEventListener("message", handleMessage);
-
-  //   return () => {
-  //     socket.removeEventListener("message", handleMessage);
-  //   };
-  // }, [socket, setFen, setMoves]);
-
   useEffect(() => {
     if (fen && fen !== chessPosition) {
-      // only update if different
       try {
         chessGame.load(fen);
         setChessPosition(fen);
@@ -110,7 +84,7 @@ export const ChessBoard = () => {
         console.error("Invalid FEN received:", error);
       }
     }
-  }, [fen, chessGame, chessPosition]);
+  }, [fen, chessPosition]);
 
   function makeMove(move: { from: string; to: string }) {
     const moveResult = chessGame.move(move);
@@ -233,8 +207,16 @@ export const ChessBoard = () => {
   };
 
   return (
-    <div className="md:h-170 md:w-170 m-2">
+    <div className="md:h-170 md:w-170 mx-2 space-y-2 ">
       <Chessboard options={chessboardOptions} />
+      <PlayerClockBar
+        activeColor={chessGame.turn()}
+        blackName={color === "b" ? user?.name.toString() : opponent?.toString()}
+        blackTime={600}
+        whiteName={color === "w" ? user?.name.toString() : opponent?.toString()}
+        whiteTime={600}
+      />
+
       <ModalResign />
       <ModalDraw />
       <ModalGameOver winner={winner} result={result} />

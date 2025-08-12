@@ -70,11 +70,13 @@ class GameManager {
     game.notifyPlayer(player1.id, {
       message: START_GAME,
       color: "w",
+      opponent: player2,
       gameId: gameId,
     });
     game.notifyPlayer(player2.id, {
       message: START_GAME,
       color: "b",
+      opponent: player1,
       gameId: gameId,
     });
   }

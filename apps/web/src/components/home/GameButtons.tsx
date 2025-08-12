@@ -12,7 +12,8 @@ export const GameButtons = () => {
   const socket = useSocket();
   const { openModal } = useModalStore();
   const { user, setUser } = useUserStore();
-  const { setColor, setGameId, gameId, color } = useActiveGameStore();
+  const { setColor, setGameId, gameId, color, setOpponent } =
+    useActiveGameStore();
   const navigate = useNavigate();
   const [isGuest, setIsGuest] = useState<boolean | null>(null);
 
@@ -63,6 +64,7 @@ export const GameButtons = () => {
         setColor(message.color);
         console.log(message.gameId);
         setGameId(message.gameId);
+        setOpponent(message.opponent.name);
       }
     };
   }, [socket]);

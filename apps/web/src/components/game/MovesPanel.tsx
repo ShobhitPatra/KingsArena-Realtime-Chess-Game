@@ -16,7 +16,7 @@ interface MovesPanelProps {
 
 export const MovesPanel = ({ moves }: MovesPanelProps) => {
   return (
-    <Card className="bg-gray-100 h-full w-xs ">
+    <Card className="bg-gray-100 w-xs">
       <CardHeader>
         <GameOptions />
         <CardTitle className="text-lg font-semibold text-center">
@@ -30,15 +30,15 @@ export const MovesPanel = ({ moves }: MovesPanelProps) => {
               No moves yet. Start playing!
             </p>
           ) : (
-            <div className="space-y-1 ">
+            <div className="space-y-3 ">
               {moves.map((move, index) => (
                 <div
                   key={index}
                   className={cn(
-                    "flex gap-4 py-1 rounded px-2",
+                    "flex gap-4 py-1 rounded px-2 ",
                     move.color === "w"
-                      ? "bg-white text-gray-600 hover:bg-gray-200 hover:text-gray-700"
-                      : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-gray-200"
+                      ? "bg-white text-gray-600  "
+                      : "bg-gray-900 text-gray-300"
                   )}
                 >
                   <div className=" text-sm font-medium text-muted-foreground">
